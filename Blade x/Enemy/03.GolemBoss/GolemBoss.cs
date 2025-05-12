@@ -1,18 +1,10 @@
-using UnityEngine;
+
+using Swift_Blade.Enemy.Throw;
 
 namespace Swift_Blade.Enemy.Boss.Golem
 {
-    public class GolemBoss : BaseEnemy
+    public class GolemBoss : ThrowEnemy
     {
-        private GolemAnimatorController golemAnimatorController;
-                
-        protected override void Start()
-        {
-            base.Start();
-            
-            golemAnimatorController =  (baseAnimationController as GolemAnimatorController);
-            golemAnimatorController.target = target;
-        }
-                
+        
     }
 }

@@ -4,6 +4,7 @@ using UnityEngine.AI;
 using Unity.Behavior;
 using UnityEngine;
 using System;
+using Swift_Blade.Pool;
 using Random = UnityEngine.Random;
 
 namespace Swift_Blade.Combat.Health
@@ -24,8 +25,10 @@ namespace Swift_Blade.Combat.Health
         [Header("Knockback info")]
         public bool isKnockback = false;
         
-        private const float DAMAGE_INTERVAL = 0.1f;
-        private float lastDamageTime;
+        private WaitForFixedUpdate waitForFixedUpdate = new WaitForFixedUpdate();
+        
+        protected const float DAMAGE_INTERVAL = 0.1f;
+        protected float lastDamageTime;
         
         protected virtual void Start()
         {
@@ -37,26 +40,35 @@ namespace Swift_Blade.Combat.Health
             animationController = GetComponentInChildren<BaseEnemyAnimationController>();
             
             OnHitEvent.AddListener(StartKnockback);
+            OnHitEvent.AddListener(GeneratorText);
             
             BehaviorGraphAgent.GetVariable("ChangeBossState",out BlackboardVariable<ChangeBossState> state);
             
-            if (state != null)
-                changeBossState = state;
-            else
-            {
-                Debug.LogError("Enemy has Not State Change");
-            }
+            Debug.Assert(state != null, "Enemy has Not State Change");
+            changeBossState = state;
             
         }
 
         private void OnDestroy()
         {
             OnHitEvent.RemoveListener(StartKnockback);
+            OnHitEvent.RemoveListener(GeneratorText);
+        }
+        
+        private void GeneratorText(ActionData actionData)
+        {
+            Vector3 textPosition = actionData.hitPoint;
+            
+            FloatingTextGenerator.Instance.GenerateText(actionData.damageAmount.ToString(),
+                textPosition,
+                actionData.textColor == default ? Color.white : actionData.textColor);
+            
+           
         }
         
         public override void TakeDamage(ActionData actionData)
         {
-            if(isDead || !IsDamageTime())return;
+            if((isDead || !IsDamageTime()) && actionData.stun == false)return;
             
             lastDamageTime = Time.time; 
             
@@ -67,7 +79,7 @@ namespace Swift_Blade.Combat.Health
                 ChangeParryState();
             
             OnHitEvent?.Invoke(actionData);
-            
+                            
             if (currentHealth <= 0)
             {
                 TriggerState(BossState.Dead);
@@ -83,7 +95,7 @@ namespace Swift_Blade.Combat.Health
             base.Dead();
         }
 
-        private bool IsDamageTime()
+        protected bool IsDamageTime()
         {
             return Time.time > lastDamageTime + DAMAGE_INTERVAL;
         }
@@ -92,14 +104,14 @@ namespace Swift_Blade.Combat.Health
         {
             return Random.Range(1,10);
         } 
-
+        
         public override void TakeHeal(float amount)
         {
             currentHealth += amount;
             currentHealth = Mathf.Min(currentHealth , maxHealth);
         }
                 
-        private void TriggerState(BossState state)
+        protected void TriggerState(BossState state)
         {
             if(isDead)return;
             
@@ -137,7 +149,7 @@ namespace Swift_Blade.Combat.Health
     
             enemyRigidbody.AddForce(knockbackDirection * knockbackForce, ForceMode.Impulse);
             
-            yield return new WaitForFixedUpdate();
+            yield return waitForFixedUpdate;
     
             float timeout = 0.5f; 
             float timer = 0f;

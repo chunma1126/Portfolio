@@ -22,14 +22,19 @@ namespace Swift_Blade.Pool
         protected virtual void Update()
         {
             pushTimer += Time.deltaTime;
-
+            
             if (pushTimer >= pushTime)
+            {
+                pushTimer = 0;
                 Push();
+            }
         }
-
+        
         protected virtual void Push()
         {
             MonoGenericPool<T>.Push((this as T));
         }
+        
+        
     }
 }

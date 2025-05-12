@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Swift_Blade.Combat.Health;
 using Swift_Blade.Pool;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Swift_Blade.Skill
@@ -11,24 +12,31 @@ namespace Swift_Blade.Skill
     {
         public override void Initialize()
         {
-            MonoGenericPool<ImpactDirt>.Initialize(skillParticle);
+            MonoGenericPool<ImpactDirtParticle>.Initialize(skillParticle);
         }
-
+        
         public override void UseSkill(Player player,  IEnumerable<Transform> targets = null)
         {
             if(targets == null || !targets.Any())return;
             if(player.GetPlayerHealth.IsFullHealth == false)return;
             
-            MonoGenericPool<ImpactDirt>.Pop().transform.position = targets.First().transform.position + new Vector3(0,1,0);
+            int value = Mathf.RoundToInt(GetColorRatio());
+            if(TryUseSkill(value) == false)return;
+            
+            MonoGenericPool<ImpactDirtParticle>.Pop().transform.position = targets.First().transform.position + new Vector3(0,1,0);
             
             foreach (var item in targets)
             {
                 if (item.TryGetComponent(out BaseEnemyHealth enemyHealth))
                 {
-                    enemyHealth.ChangeParryState();
+                    ActionData actionData = new ActionData
+                    {
+                        stun = true
+                    };
+                    enemyHealth.TakeDamage(actionData);
                 }
             }
-                        
+            
         }
     }
 }

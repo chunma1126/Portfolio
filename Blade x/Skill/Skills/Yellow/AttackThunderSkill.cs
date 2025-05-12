@@ -10,9 +10,9 @@ namespace Swift_Blade.Skill
     {
         [Tooltip("몇번 때리면 기절할게 할것인지.")]  [SerializeField] private ushort attackCount = 3;
         private float attackCounter = 0;
-       
+        
         [SerializeField] private int skillDamage = 0;
-
+                
         public override void Initialize()
         {
             if (skillParticle == null || skillParticle.GetMono == null)
@@ -20,7 +20,7 @@ namespace Swift_Blade.Skill
                 Debug.LogError("SkillEffectPrefab or its MonoBehaviour is null.");
                 return;
             }
-
+            
             attackCounter = 0;
             MonoGenericPool<ThunderParticle>.Initialize(skillParticle);
         }
@@ -37,12 +37,15 @@ namespace Swift_Blade.Skill
                     {
                         if(item.TryGetComponent(out BaseEnemyHealth health))
                         {
-                            ActionData actionData= new ActionData();
-                            actionData.damageAmount = skillDamage;
+                            ActionData actionData = new ActionData();
                             actionData.stun = true;
-                        
+                            actionData.damageAmount = skillDamage * GetColorRatio();
+                            actionData.hurtType = 1;
+                            actionData.textColor = Color.yellow;
+                            //FloatingTextGenerator.Instance.GenerateText(generateText,item.transform.position + new Vector3(0,0.5f,0));
+                            
                             health.TakeDamage(actionData);
-                        
+                            
                             ThunderParticle th = MonoGenericPool<ThunderParticle>.Pop();
                             th.transform.position = item.transform.position + new Vector3(0,1,0);
                         }

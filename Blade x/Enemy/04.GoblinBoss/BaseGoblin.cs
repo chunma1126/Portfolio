@@ -27,7 +27,7 @@ namespace Swift_Blade.Enemy.Goblin
                     goblinAnimator.knockbackSpeed * Time.deltaTime);
             }
         }
-        
+
         private bool DetectBackwardObstacle()
         {
             var ray = new Ray(checkForward.position, -checkForward.forward);
