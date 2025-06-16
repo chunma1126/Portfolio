@@ -1,4 +1,3 @@
-using System;
 using Unity.Behavior;
 
 [BlackboardEnum]
@@ -8,7 +7,8 @@ public enum BossState
     Recovery,
 	Move,
 	Attack,
-	Hurt,
+	Parry,
+	Hit,
 	Step,
 	Dead
 }

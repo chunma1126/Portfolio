@@ -13,9 +13,7 @@ namespace Swift_Blade.Enemy.Goblin
         protected override void Start()
         {
             base.Start();
-                        
-            var animationSpeed = Random.Range(minAnimationSpeed, maxAnimationSpeed);
-            goblinAnimator.SetAnimationSpeed(animationSpeed);
+                                    
             player = target.GetComponentInParent<Player>().GetPlayerTransform;
 
         }

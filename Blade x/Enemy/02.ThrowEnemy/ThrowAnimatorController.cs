@@ -13,44 +13,41 @@ namespace Swift_Blade.Enemy.Throw
         public Collider bodyCollider;
         public Collider originCollider;
         
-        private BaseThrow _throw;
+        private BaseThrow throwThing;
         
-        private IGetMoveSpeedAble getMoveSpeedAble;
+        private ThrowEnemy throwEnemy;
         private ThrowEnemyHealth throwEnemyHealth;
-
         private float originAttackDistance;
-        
-        protected override void Start()
+                
+        protected virtual void Start()
         {
-            base.Start();
-            enemy = enemy as ThrowEnemy;
-            getMoveSpeedAble = enemy as IGetMoveSpeedAble;
+            throwEnemy = enemy as ThrowEnemy;
             throwEnemyHealth = enemy.GetHealth() as ThrowEnemyHealth;
         }
-        
+                        
         public void SetStone(BaseThrow stone)
         {
             if (stone == null)
             {
-                if (_throw != null)
+                if (throwThing != null)
                 {
-                    _throw.transform.SetParent(null);
-                    _throw.SetPhysicsState(false);
+                    throwThing.transform.SetParent(null);
+                    throwThing.SetPhysicsState(false);
                 }
             }
             
             throwEnemyHealth.SetCanChangeParry(true);
-            _throw = stone;
+            throwThing = stone;
         }
         
         public void CatchStone()
         {
             throwEnemyHealth.SetCanChangeParry(false);
-            _throw.SetPhysicsState(true);
-                        
-            _throw.transform.SetParent(throwHolder);
-            _throw.transform.localEulerAngles = Vector3.zero;
-            _throw.transform.localPosition = Vector3.zero;
+            throwThing.SetPhysicsState(true);
+            
+            throwThing.transform.SetParent(throwHolder);
+            throwThing.transform.localEulerAngles = Vector3.zero;
+            throwThing.transform.localPosition = Vector3.zero;
         }
         
         public void ThrowStone()
@@ -59,8 +56,8 @@ namespace Swift_Blade.Enemy.Throw
             
             var direction = (target.position - transform.position).normalized;
             
-            _throw.SetDirection(direction);
-            _throw = null;
+            throwThing.SetDirection(direction);
+            throwThing = null;
         }
         
         public void StartManualCollider()
@@ -88,7 +85,7 @@ namespace Swift_Blade.Enemy.Throw
             }
             else
             {
-                DOVirtual.Float(attackMoveSpeed, getMoveSpeedAble.GetMoveSpeed(), 0.7f, x =>
+                DOVirtual.Float(attackMoveSpeed, throwEnemy.GetMoveSpeed(), 0.7f, x =>
                 {
                     attackMoveSpeed = x;
                 }).OnComplete(() =>

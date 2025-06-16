@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Swift_Blade.Combat.Health;
 using Swift_Blade.Pool;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Swift_Blade.Skill
@@ -20,9 +19,11 @@ namespace Swift_Blade.Skill
             if(targets == null || !targets.Any())return;
             if(player.GetPlayerHealth.IsFullHealth == false)return;
             
+            
             int value = Mathf.RoundToInt(GetColorRatio());
             if(TryUseSkill(value) == false)return;
             
+            GenerateSkillText(true);
             MonoGenericPool<ImpactDirtParticle>.Pop().transform.position = targets.First().transform.position + new Vector3(0,1,0);
             
             foreach (var item in targets)

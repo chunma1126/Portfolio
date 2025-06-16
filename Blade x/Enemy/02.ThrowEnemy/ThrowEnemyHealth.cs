@@ -12,18 +12,22 @@ namespace Swift_Blade.Combat.Health
             base.Start();
             throwAnimatorController = animationController as ThrowAnimatorController;
         }
-
-        public override void ChangeParryState()
+                
+        public override void TriggerState(BossState state)
         {
             if(canChangeParry == false)return;
             
             throwAnimatorController.SetStone(null);
-            base.ChangeParryState();
+            base.TriggerState(state);
         }
-        
         public void SetCanChangeParry(bool _canChangeParry)
         {
             canChangeParry = _canChangeParry;
+        }
+
+        public bool GetChangeParry()
+        {
+            return canChangeParry;
         }
         
     }

@@ -15,6 +15,8 @@ namespace Swift_Blade
         [SerializeField] private float skillRadius;
         [SerializeField] private LayerMask whatIsTarget;
 
+        private bool hasGeneratedText = false;
+        
         public override void Initialize()
         {
             MonoGenericPool<LightingSparkParticle>.Initialize(skillParticle);
@@ -27,12 +29,11 @@ namespace Swift_Blade
                 targets = Physics.OverlapSphere(player.GetPlayerTransform.position, skillRadius, whatIsTarget)
                     .Select(x => x.transform);
             }
-
+                        
             ++skillCounter;
             if (skillCounter >= skillCount)
             {
                 skillCounter = 0;
-            
                 if (TryUseSkill())
                 {
                     foreach (var item in targets)
@@ -41,14 +42,23 @@ namespace Swift_Blade
                         {
                             ActionData actionData = new ActionData();
                             actionData.stun = true;
-                            actionData.hurtType = 1;
+                            actionData.ParryType = 1;
+                            actionData.damageAmount = Mathf.Max(1,GetColorRatio());
                             
                             health.TakeDamage(actionData);
                         }
-                
+
+                        if (hasGeneratedText == false)
+                        {
+                            GenerateSkillText(true);
+                            hasGeneratedText = true;
+                        }
+                        
                         LightingSparkParticle th = MonoGenericPool<LightingSparkParticle>.Pop();
                         th.transform.position = player.GetPlayerTransform.position + new Vector3(0,0.4f,0);
                     }
+                    
+                    hasGeneratedText = false;
                 }
                 
             }

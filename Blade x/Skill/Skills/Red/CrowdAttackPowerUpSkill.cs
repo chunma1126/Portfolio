@@ -20,7 +20,7 @@ namespace Swift_Blade.Skill
         {
             MonoGenericPool<RedWaveParticle>.Initialize(skillParticle);
         }
-
+        
         public override void SkillUpdate(Player player,  IEnumerable<Transform> targets = null)
         {
             targets = Physics.OverlapSphere(player.GetPlayerTransform.position, radius, whatIsTarget)
@@ -29,42 +29,29 @@ namespace Swift_Blade.Skill
             if (isUpgrade == false && targets.Count() >= targetCount)
             {
                 isUpgrade = true;
-                //PopupManager.Instance.LogInfoBox($"{skillName}?? ??? ??????!");
+                GenerateSkillText(true);
+                statCompo.AddModifier(statType , skillName , increaseValue * GetColorRatio());
                 
                 RedWaveParticle redWaveParticle = MonoGenericPool<RedWaveParticle>.Pop();
                 redWaveParticle.transform.position = player.GetPlayerTransform.position + new Vector3(0,1,0);
-                
-                
             }
             else if(isUpgrade && targets.Count() < targetCount)
             {
-                isUpgrade = false;
-                //PopupManager.Instance.LogInfoBox($"{skillName}?? ???? ??????");
+                ResetSkill();
             }
             
         }
         
         public override void UseSkill(Player player,  IEnumerable<Transform> targets = null)
         {
-            if(isUpgrade == false)return;
             
-            foreach (var item in targets)
-            {
-                if (item.TryGetComponent(out BaseEnemyHealth health))
-                {
-                    ActionData actionData = new ActionData
-                    {
-                        damageAmount = Mathf.RoundToInt(increaseValue * GetColorRatio())
-                    };
-                    
-                    /*FloatingTextGenerator.Instance.GenerateText(actionData.damageAmount.ToString(),
-                        item.position + new Vector3(0,0.5f,0));*/
-                    
-                    health.TakeDamage(actionData);   
-                    
-                }
-            }
         }
-        
+
+        public override void ResetSkill()
+        {
+            GenerateSkillText(false);
+            isUpgrade = false;
+            statCompo.RemoveModifier(statType , skillName);
+        }
     }
 }

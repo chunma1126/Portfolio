@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using DG.Tweening;
 using Swift_Blade.Pool;
+using DG.Tweening;
 using UnityEngine;
 
 namespace Swift_Blade.Skill
@@ -31,27 +31,28 @@ namespace Swift_Blade.Skill
         
         public override void UseSkill(Player player, IEnumerable<Transform> targets = null)
         {
-            if(TryUseSkill() == false)return;
-
+            ++skillCounter;
+            
             DOVirtual.DelayedCall(EXECUTE_DELAY , () =>
             {
                 if (directions == null || directions.Length != skillCount)
                 {
                     directions[0] = player.GetPlayerTransform.forward;
-                    directions[1] = player.GetPlayerTransform.right;
+                    directions[1] = -player.GetPlayerTransform.forward;
                     directions[2] = -player.GetPlayerTransform.right;
-                    directions[3] = -player.GetPlayerTransform.forward;
+                    directions[3] = player.GetPlayerTransform.right;
                 }
-            
-                ++skillCounter;
-                
+                                
                 int count = Mathf.Clamp(Mathf.FloorToInt(GetColorRatio()), MIN_SKILL_COUNT, MAX_SKILL_COUNT);
                 
                 if (skillCounter >= skillCount)
                 {
+                    
                     BlueCircleParticle blueCircleParticle =  MonoGenericPool<BlueCircleParticle>.Pop();
                     blueCircleParticle.transform.SetParent(player.GetPlayerTransform);
                     blueCircleParticle.transform.transform.position = player.GetPlayerTransform.position + new Vector3(0,0.5f,0);
+                    
+                    GenerateSkillText(true);
                     
                     DOVirtual.DelayedCall(FIRE_DELAY , () =>
                     {
@@ -69,10 +70,10 @@ namespace Swift_Blade.Skill
             for (int i = 0; i < count; i++)
             {
                 WindProjectileParticle windProjectileParticle = MonoGenericPool<WindProjectileParticle>.Pop();
-                        
+                
                 Vector3 direction = directions[i].normalized;
                 Vector3 spawnOffset = direction * 2 + new Vector3(0, 0.5f, 0); 
-                        
+                
                 windProjectileParticle.transform.position = player.GetPlayerTransform.position + spawnOffset;
                 windProjectileParticle.SetDirection(direction);
             }

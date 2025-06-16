@@ -1,7 +1,7 @@
-using System;
 using Swift_Blade.Pool;
 using UnityEngine;
 using DG.Tweening;
+using Swift_Blade.Audio;
 
 namespace Swift_Blade.Level
 {
@@ -12,7 +12,7 @@ namespace Swift_Blade.Level
         [SerializeField] private PoolPrefabMonoBehaviourSO dustPrefab;
         
         [SerializeField] private bool isDefaultPortal;
-        [SerializeField] private bool isNotStageDoor;
+        [SerializeField] private bool isTutorialDoor;
         
         [Range(0.1f , 10)] [SerializeField] private float enterDelay;
         [Range(0.1f , 10)] [SerializeField] private float enterDuration;
@@ -24,6 +24,19 @@ namespace Swift_Blade.Level
         [SerializeField] private Transform cage;
         [SerializeField] private string sceneName;
 
+        [SerializeField] private GameObject meshObject;
+
+        [Space] 
+        [SerializeField] private AudioSO doorEnterSound; 
+        [SerializeField] private AudioSO doorUseSound;
+
+        private bool canUse = true;
+        
+        GameObject IInteractable.GetMeshGameObject()
+        {
+            return meshObject;
+        }
+        
         private void Awake()
         {
             MonoGenericPool<DustUpParticle>.Initialize(dustPrefab);   
@@ -31,12 +44,16 @@ namespace Swift_Blade.Level
 
         private void Start()
         {
-            if (isDefaultPortal && isNotStageDoor == false)
+            if (isTutorialDoor)
             {
-                SetScene(nodeList.GetNodeNameByNodeType(NodeType.Stage1));
+                return;
             }
             
-            //DOVirtual.DelayedCall(delay, (UpDoor()));
+            if (isDefaultPortal)
+            {
+                SetScene(nodeList.GetNodeNameByNodeType(nodeList.GetCurrentStageType()));
+            }
+            
         }
 
         private void Rotate()
@@ -45,33 +62,6 @@ namespace Swift_Blade.Level
             direction.y = 0; 
             door.rotation = Quaternion.LookRotation(-direction);
         }
-               
-        /*private void OnEnable()
-        {
-            cinemachineCamera.Priority = 1;
-            DOVirtual.DelayedCall(delay, UpDoor);
-        }
-
-        private void OnDisable()
-        {
-            door.transform.position -= new Vector3(0,2.6f , 0);
-        }*/
-        
-        /*public IEnumerator UpDoor(float doorMoveDelay = 0)
-        {
-            bool isFinished = false;
-            
-            cinemachineCamera.Priority = 1;
-            
-            Sequence sequence = DOTween.Sequence();
-            sequence.AppendCallback(() => CameraShakeManager.Instance.DoShake(cameraShakeType));
-            sequence.Join(door.DOMoveY(transform.position.y + 0.25f, duration));
-            sequence.AppendInterval(doorMoveDelay);
-            sequence.AppendCallback(() => cinemachineCamera.Priority = -1);
-            sequence.OnComplete(() => isFinished = true); 
-
-            yield return new WaitUntil(() => isFinished);
-        }*/
         
         public void SetScene(string _sceneName)
         {
@@ -80,14 +70,12 @@ namespace Swift_Blade.Level
                         
         public void UpDoor()
         {
+            AudioManager.PlayWithInit(doorEnterSound,true);
+            
             Sequence sequence = DOTween.Sequence();
             sequence.AppendInterval(enterDelay);
             sequence.AppendCallback(Rotate);
             sequence.Append(door.DOMoveY(transform.position.y + 0.25f, enterDuration));
-            sequence.OnComplete(() =>
-            {
-                var isFinished = true;
-            });
             
             DustUpParticle dustParticle = MonoGenericPool<DustUpParticle>.Pop();
             dustParticle.transform.position = transform.position;
@@ -95,11 +83,14 @@ namespace Swift_Blade.Level
         
         public void Interact()
         {
-            cage.transform.DOLocalMoveY(-2.25f ,cageDownDuration ).SetEase(Ease.OutQuart).SetLink(gameObject);
+            if(!canUse)return;
+            canUse = false;
+            
+            AudioManager.PlayWithInit(doorUseSound,true);
+                        
             sceneManager.LoadScene(sceneName);
+            cage.transform.DOLocalMoveY(-2.25f ,cageDownDuration ).SetEase(Ease.OutQuart);
         }
-        
-       
         
     }
 }

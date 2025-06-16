@@ -17,7 +17,7 @@ namespace Swift_Blade.Pool
                     stun = true,
                     damageAmount =  damage,
                 };
-                actionData.hurtType = 1;
+                actionData.ParryType = 1;
                 actionData.textColor = Color.magenta;
                                                 
                 health.TakeDamage(actionData);

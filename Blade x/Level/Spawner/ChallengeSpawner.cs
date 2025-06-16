@@ -4,12 +4,12 @@ using System.Collections;
 using Swift_Blade.Enemy;
 using Swift_Blade.UI;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Swift_Blade.Level
 {
     public class ChallengeSpawner : Spawner
     {
-        private bool isClear = false;
         [SerializeField] private float wavePeriod;
         [SerializeField] private float endTimeSecond;
         private float endTimer;
@@ -19,15 +19,17 @@ namespace Swift_Blade.Level
         
         [Header("Spawn Position")]
         [SerializeField] private Transform[] spawnPosition;
-                
+        
         [Header("Chest info")]
         [SerializeField] private Chest chest;
-        [SerializeField] private Transform chestPosition;
+        [SerializeField] private Transform[] chestPositionList;
         
         private readonly List<BaseEnemy> allEnemyList = new List<BaseEnemy>(40);
         
         private WaitForSeconds countdownWait;
         private WaitForSeconds wavePeriodWait;
+        
+        private int spawnPositionIndex;
         
         protected override void Start()
         {
@@ -57,7 +59,10 @@ namespace Swift_Blade.Level
                     yield return new WaitForSeconds(waves.spawnInfos[j].delay);
                                         
                     var enemyPrefab = waves.spawnInfos[j].enemy;
-                    var newEnemy = Instantiate(enemyPrefab, spawnPosition[j].position, Quaternion.identity);
+                    var newEnemy = Instantiate(enemyPrefab, spawnPosition[spawnPositionIndex++ % spawnPosition.Length].position, Quaternion.identity);
+                    
+                    newEnemy.GetHealth().AddMaxHealth(CalculateHealthAdditional());
+                    
                     allEnemyList.Add(newEnemy);
                     
                     PlaySpawnParticle(newEnemy.transform.position);
@@ -91,11 +96,12 @@ namespace Swift_Blade.Level
             isClear = true;
             
             StopAllCoroutines();
-            StartCoroutine(LevelClear());
-                        
-            ClearEnemies();
+            
             CreateChest();
+            ClearEnemies();
             challengeStageUI.SetText();
+            
+            StartCoroutine(LevelClear());
         }
 
         private void ClearEnemies()
@@ -114,10 +120,14 @@ namespace Swift_Blade.Level
             
             allEnemyList.Clear();
         }
-
+        
         private void CreateChest()
         {
-            Instantiate(chest , chestPosition.position, Quaternion.identity);
+            foreach(var chestTrm in chestPositionList)
+            {
+                Instantiate(chest , chestTrm.position, Quaternion.identity);
+            }
+           
         }
         
     }

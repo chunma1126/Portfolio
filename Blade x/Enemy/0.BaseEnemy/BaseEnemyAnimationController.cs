@@ -1,7 +1,9 @@
+using DG.Tweening;
 using Swift_Blade.Combat.Caster;
+using Swift_Blade.Audio;
 using UnityEngine.AI;
 using UnityEngine;
-
+using Random = UnityEngine.Random;
 
 namespace Swift_Blade.Enemy
 {
@@ -12,7 +14,7 @@ namespace Swift_Blade.Enemy
         
         protected BaseEnemy enemy;
         protected ICasterAble caster;
-
+        
         [SerializeField] [Range(1,60)] protected float defaultAttackMoveSpeed;
         protected float attackMoveSpeed;
         
@@ -26,11 +28,13 @@ namespace Swift_Blade.Enemy
         public float maxAnimationSpeed = 1.3f;
         public float minAnimationSpeed = 1;
         
-        private readonly int ANIMATION_SPEED = Animator.StringToHash("AnimationSpeed");
-        public Animator GetAnimator() => Animator;
+        protected readonly int ANIMATION_SPEED = Animator.StringToHash("AnimationSpeed");
         
-        private float originMotionSpeed;
-        float originMoveSpeed;
+        protected float originMotionSpeed;
+        private float originMoveSpeed;
+
+        private readonly float attackMoveAccelerationDuration = 0.2f;
+        private Tween attackMoveTween;
         
         protected virtual void Awake()
         {
@@ -38,23 +42,22 @@ namespace Swift_Blade.Enemy
             enemy = GetComponent<BaseEnemy>();
             NavMeshAgent = GetComponent<NavMeshAgent>();
             caster = GetComponentInChildren<ICasterAble>();
-        }
-        
-        protected virtual void Start()
-        {
+            
             SetRandomAttackAnimationSpeed();
+            ResetAnimationSpeed();
         }
         
-        protected void SetRandomAttackAnimationSpeed()
+        #region Speed 
+        private void SetRandomAttackAnimationSpeed()
         {
             originMotionSpeed = Random.Range(minAnimationSpeed, maxAnimationSpeed);
-            SetAnimationSpeed(originMotionSpeed);
         }
         
         public void ResetAnimationSpeed()
         {
             SetAnimationSpeed(originMotionSpeed);
         }
+       
         
         public void SetAnimationSpeed(float animationSpeed)
         {
@@ -71,13 +74,19 @@ namespace Swift_Blade.Enemy
         {
             defaultAttackMoveSpeed = originMoveSpeed;
         }
-                
-        private void Cast()
+        
+        #endregion
+        
+        
+        public void Rebind()
         {
-            caster.Cast();
+            Animator.Rebind();
+            ResetAnimationSpeed();
         }
         
-        public void SetAnimationEnd() => animationEnd = true;
+        public Animator GetAnimator() => Animator;
+        private void Cast() => caster.Cast();
+        public virtual void SetAnimationEnd() => animationEnd = true;
         public void StopAnimationEnd() => animationEnd = false;
         public void StartManualRotate() => isManualRotate = true;
         public void StopManualRotate() => isManualRotate = false;
@@ -86,24 +95,47 @@ namespace Swift_Blade.Enemy
         
         public void StartManualMove(float _moveSpeed = 0)
         {
-            attackMoveSpeed = _moveSpeed == 0 ? defaultAttackMoveSpeed : _moveSpeed;
+            float targetSpeed = _moveSpeed == 0 ? defaultAttackMoveSpeed : _moveSpeed;
+
             isManualMove = true;
             
-            if(NavMeshAgent != null)
+            if (NavMeshAgent != null)
                 NavMeshAgent.enabled = false;
+            
+            attackMoveTween?.Kill();
+            attackMoveTween = DOVirtual.Float(
+                from: 0f,
+                to: targetSpeed,
+                duration: attackMoveAccelerationDuration, 
+                onVirtualUpdate: value => attackMoveSpeed = value
+            );
         }
         public virtual void StopManualMove()
         {
-            if(NavMeshAgent == null)return;
-                
-            attackMoveSpeed = defaultAttackMoveSpeed;
-            NavMeshAgent.Warp(transform.position);
+            if (NavMeshAgent == null || enemy == null)
+                return;
+
             isManualMove = false;
             
-            //if dead? off navmeshAgent
-            NavMeshAgent.enabled = !enemy.GetHealth().isDead;
+            attackMoveTween?.Kill();
+            attackMoveTween = DOVirtual.Float(
+                attackMoveSpeed,
+                0f,
+                attackMoveAccelerationDuration,
+                value => attackMoveSpeed = value
+            ).OnComplete(() =>
+            {
+                attackMoveSpeed = defaultAttackMoveSpeed;
+            });
+
+            NavMeshAgent.Warp(transform.position);
+            
+            var health = enemy.GetHealth();
+            if (health != null)
+                NavMeshAgent.enabled = !health.isDead;
+
         }
-        
+                
         public virtual void StopAllAnimationEvents()
         {
             StopAnimationEnd();
@@ -111,11 +143,13 @@ namespace Swift_Blade.Enemy
             StopManualRotate();
             StopApplyRootMotion();
         }
-                
-        public void Rebind()
+        
+        private void OnAudioPlay(AudioSO audio)
         {
-            Animator.Rebind();
+            AudioManager.PlayWithInit(audio, true);
         }
+        
+        private void OnAudioPlayCollection(AudioCollectionSO audioCollectionSo) => OnAudioPlay(audioCollectionSo.GetRandomAudio);
         
        
     }

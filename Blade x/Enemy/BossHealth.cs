@@ -12,7 +12,7 @@ namespace Swift_Blade.Combat.Health
             currentHealth -= actionData.damageAmount;
             
             OnHitEvent?.Invoke(actionData);
-                        
+            
             if (currentHealth <= 0)
             {
                 TriggerState(BossState.Dead);

@@ -21,17 +21,15 @@ namespace Swift_Blade.Skill
     {
         private Player _player;
 
-        public event Action<Player, IEnumerable<Transform>> OnAttackEventSkill;
-        public event Action<Player, IEnumerable<Transform>> OnRollingEventSkill;
-        public event Action<Player, IEnumerable<Transform>> OnSpecialEventSkill;
-        public event Action<Player, IEnumerable<Transform>> OnHitEventSkill;
-        public event Action<Player, IEnumerable<Transform>> OnDeadEventSkill;
-
-        [SerializeField] private SkillData[] skillDatas;
+        private event Action<Player, IEnumerable<Transform>> OnAttackEventSkill;
+        private event Action<Player, IEnumerable<Transform>> OnRollingEventSkill;
+        private event Action<Player, IEnumerable<Transform>> OnSpecialEventSkill;
+        private event Action<Player, IEnumerable<Transform>> OnHitEventSkill;
+        private event Action<Player, IEnumerable<Transform>> OnDeadEventSkill;
 
         [SerializeField] private List<SkillData> currentSkillList;
 
-        private Dictionary<SkillType, Action<Player, IEnumerable<Transform>>> skillEvents;
+        public Dictionary<SkillType, Action<Player, IEnumerable<Transform>>> skillEvents;
         private ushort maxSlotCount = 4;
         private ushort slotCount = 0;
 
@@ -41,7 +39,7 @@ namespace Swift_Blade.Skill
         
         private void Awake()
         {
-            skillUpdateWait = new WaitForSeconds(0.02f);
+            skillUpdateWait = new WaitForSeconds(0.001f);
             
             skillEvents = new Dictionary<SkillType, Action<Player, IEnumerable<Transform>>>()
                 {
@@ -55,6 +53,17 @@ namespace Swift_Blade.Skill
                 };
 
             StartCoroutine(SKillUpdateRoutine());
+
+        }
+        
+        private void OnDestroy()
+        {
+            OnAttackEventSkill -= Test;
+        }
+        
+        private void Test(Player arg1, IEnumerable<Transform> arg2)
+        {
+            Debug.Log(123);
         }
 
         private IEnumerator SKillUpdateRoutine()
@@ -73,19 +82,19 @@ namespace Swift_Blade.Skill
             }
         }
 
-        /*private void Update()
+        private void Update()
         {
             foreach (var item in currentSkillList)
             {
                 item.SkillUpdate(_player);
             }
-        }*/
+        }
 
         private void OnDrawGizmos()
         {
             if (canDrawGizmo == false) return;
 
-            foreach (var item in skillDatas)
+            foreach (var item in currentSkillList)
             {
                 item.Render();
             }
@@ -99,7 +108,6 @@ namespace Swift_Blade.Skill
         public void EntityComponentStart(Entity entity)
         {
             SkillManager.Instance.LoadSkillData();
-            
             InitializeSkill();
         }
         
@@ -112,6 +120,14 @@ namespace Swift_Blade.Skill
             }
         }
 
+        public void ResetSkill()
+        {
+            foreach (var item in currentSkillList)
+            {
+                item.ResetSkill();
+            }
+        }
+        
         public void AddSkill(SkillData skillData)
         {
             if (slotCount >= maxSlotCount) return;
@@ -134,29 +150,24 @@ namespace Swift_Blade.Skill
         {
             if (skillEvents.ContainsKey(skillData.skillType) && skillEvents[skillData.skillType] != null)
             {
-                Debug.Log($"Skill Remove name {skillData.skillName}");
-
                 skillEvents[skillData.skillType] -= skillData.UseSkill;
                 currentSkillList.Remove(skillData);
                 --slotCount;
+                
+                skillData.ResetSkill();
             }
         }
-
+        
         public void UseSkill(SkillType type, IEnumerable<Transform> targets = null)
         {
             if (skillEvents.ContainsKey(type))
             {
                 skillEvents[type]?.Invoke(_player, targets);
             }
+                        
         }
-
-        private void OnDrawGizmosSelected()
-        {
-            foreach (var item in skillDatas)
-            {
-                item.DrawGizmo(_player);
-            }
-        }
+        
+        
     }
 }
 

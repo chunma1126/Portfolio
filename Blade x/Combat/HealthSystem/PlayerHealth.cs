@@ -3,6 +3,7 @@ using Swift_Blade.UI;
 using UnityEngine;
 using System;
 using System.Collections;
+using Swift_Blade.Audio;
 
 namespace Swift_Blade.Combat.Health
 {
@@ -18,8 +19,8 @@ namespace Swift_Blade.Combat.Health
         
         
         [SerializeField] private StatSO         healthStat;
-        [SerializeField] private float          defaultHealth = 4;
         [SerializeField] private ShieldEffect _shieldEffect;
+        [SerializeField] private BaseAudioSO armorBreakAudio;
 
         private float _lastDamageTime;
         private int   _shieldAmount;
@@ -29,10 +30,12 @@ namespace Swift_Blade.Combat.Health
 
         public float GetCurrentHealth => CurrentHealth;
 
-        private Rigidbody rigidbody;
+        private Rigidbody _rigidbody;
         private bool isKnockback;
         private WaitForFixedUpdate waitForFixedUpdate = new WaitForFixedUpdate();
-        
+
+        [SerializeField] private BaseAudioSO playerHeal;
+
         public int ShieldAmount
         {
             get => _shieldAmount;
@@ -54,7 +57,7 @@ namespace Swift_Blade.Combat.Health
         public void EntityComponentStart(Entity entity)
         {
             statCompo = _player.GetEntityComponent<PlayerStatCompo>();
-            rigidbody = _player.GetComponentInChildren<Rigidbody>();
+            _rigidbody = _player.GetComponentInChildren<Rigidbody>();
             
             healthStat = statCompo.GetStat(StatType.HEALTH);
             maxHealth = healthStat.Value;
@@ -102,6 +105,8 @@ namespace Swift_Blade.Combat.Health
 
                 HitEvent();
 
+                AudioManager.PlayWithInit(armorBreakAudio, true);
+
                 return;
             }
 
@@ -125,11 +130,23 @@ namespace Swift_Blade.Combat.Health
                 }
             }
         }
+
+        public void DescreaseHealth(int decreaseAmount)
+        {
+            CurrentHealth -= decreaseAmount;
+
+            ActionData actionData = new ActionData();
+            actionData.damageAmount = decreaseAmount;
+
+            OnHitEvent?.Invoke(actionData);
+        }
         
         public override void TakeHeal(float healAmount) //힐 받으면 현재 체력에 HealAmount 더한 값으로 변경
         {
             if(Mathf.Approximately(CurrentHealth, healthStat.Value))
                 return;
+
+            AudioManager.PlayWithInit(playerHeal, true);
             
             CurrentHealth += healAmount;
             CurrentHealth = Mathf.Min(CurrentHealth, maxHealth);
@@ -142,10 +159,10 @@ namespace Swift_Blade.Combat.Health
         public override void Dead()
         {
             base.Dead();
-
-            Menu.IsNewGame = true;
-            CurrentHealth = defaultHealth;
             
+            Menu.IsNewGame = true;
+
+            Player.level.StatPoint = 0;
             PopupManager.Instance.AllPopDown();
             PopupManager.Instance.PopUp(PopupType.GameOver);
         }
@@ -165,21 +182,21 @@ namespace Swift_Blade.Combat.Health
         {
             isKnockback = true;
                         
-            rigidbody.AddForce(knockbackDirection * knockbackForce, ForceMode.Impulse);
+            _rigidbody.AddForce(knockbackDirection * knockbackForce, ForceMode.Impulse);
             
             yield return waitForFixedUpdate;
             
             float timeout = 0.5f; 
             float timer = 0f;
             
-            while (rigidbody.linearVelocity.sqrMagnitude > 0.01f && timer < timeout) 
+            while (_rigidbody.linearVelocity.sqrMagnitude > 0.01f && timer < timeout) 
             {
                 timer += Time.deltaTime;
                 yield return null;
             }
             
-            rigidbody.linearVelocity = Vector3.zero;
-            rigidbody.angularVelocity = Vector3.zero;
+            _rigidbody.linearVelocity = Vector3.zero;
+            _rigidbody.angularVelocity = Vector3.zero;
             
             yield return new WaitForFixedUpdate();
                     

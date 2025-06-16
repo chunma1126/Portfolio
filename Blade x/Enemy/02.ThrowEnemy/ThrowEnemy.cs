@@ -1,9 +1,8 @@
-﻿
-using Swift_Blade.Combat.Health;
+﻿using Swift_Blade.Combat.Health;
 
 namespace Swift_Blade.Enemy.Throw
 {
-    public class ThrowEnemy : BaseEnemy,IGetMoveSpeedAble
+    public class ThrowEnemy : BaseEnemy
     {
         private ThrowAnimatorController _throwEnemyAnimationController;
         
@@ -19,6 +18,13 @@ namespace Swift_Blade.Enemy.Throw
         {
             return baseHealth as ThrowEnemyHealth;
         }
+        
+        public override void StartKnockback(ActionData actionData)
+        {
+            if((baseHealth as ThrowEnemyHealth).GetChangeParry() == false)return;
+            
+            base.StartKnockback(actionData);
+        }
 
         public override void DeadEvent()
         {
@@ -26,6 +32,5 @@ namespace Swift_Blade.Enemy.Throw
             base.DeadEvent();
         }
         
-        public float GetMoveSpeed() => moveSpeed;
     }
 }

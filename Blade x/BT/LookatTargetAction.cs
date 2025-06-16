@@ -11,11 +11,13 @@ public partial class LookatTargetAction : Action
 {
     [SerializeReference] public BlackboardVariable<bool> Param;
     [SerializeReference] public BlackboardVariable<BaseEnemyAnimationController> AnimatorController;
+    
     protected override Status OnStart()
     {
         AnimatorController.Value.isManualRotate = Param.Value;
         return Status.Success;
     }
+        
     
 }
 

@@ -26,12 +26,7 @@ namespace Swift_Blade.Combat.Caster
             for (int i = 0; i < hitCount; i++)
             {
                 RaycastHit hit = hits[i];
-
-                if (hit.collider.gameObject == gameObject)
-                    continue; // 자기 자신은 무시
-
-                Debug.Log(hit.collider.gameObject.name);
-
+                
                 if (hit.collider.TryGetComponent(out IHealth health))
                 {
                     Vector3 hitPoint = hit.point;

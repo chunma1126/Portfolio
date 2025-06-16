@@ -12,11 +12,14 @@ namespace Swift_Blade.Skill
     {
         [SerializeField] private float skillRadius;
         [SerializeField] private float skillDamage;
+        [SerializeField] private float slowSpeed;
         [SerializeField] private float slowDuration;
         
         [SerializeField] private int icicleCount;
         [SerializeField] private LayerMask whatIsEnemy;
-                
+        
+        private bool hasGeneratedText = false;
+        
         public override void Initialize()
         {
             MonoGenericPool<IcicleParticle>.Initialize(skillParticle);
@@ -35,17 +38,29 @@ namespace Swift_Blade.Skill
                 
                 if (item.TryGetComponent(out BaseEnemyHealth health) && item.TryGetComponent(out BaseEnemy enemy))
                 {
+                    enemy.GetEffectController().SetSlow(slowSpeed,slowDuration);
+                    
                     ActionData actionData = new ActionData();
                     actionData.stun = true;
                     actionData.damageAmount = skillDamage;
+                    actionData.hitPoint = item.position + new Vector3(0, 0.25f, 0);
+                    actionData.ParryType = 1;
                     health.TakeDamage(actionData);
+                    
+                    if (hasGeneratedText == false)
+                    {
+                        GenerateSkillText(true);
+                        hasGeneratedText = true;
+                    }
                     
                     MonoGenericPool<IcicleParticle>.Pop().transform.position = item.position;
                 }
                 
                 i++;
             }
-                    
+            
+            hasGeneratedText = false;
+
         }
         
     }

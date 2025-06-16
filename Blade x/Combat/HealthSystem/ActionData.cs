@@ -12,9 +12,10 @@ public struct ActionData
     public Vector3 knockbackDirection;
     public float knockbackForce;
     
-    public int hurtType;
+    public int ParryType;
     public Color textColor;
-    public ActionData( Vector3 hitPoint,  Vector3 hitNormal, float damageAmount, bool stun, Vector3 knockbackDirection = default, float knockbackForce = 0f, int hurtType = 0 ,Color textColor = default)
+    
+    public ActionData( Vector3 hitPoint,  Vector3 hitNormal, float damageAmount, bool stun, Vector3 knockbackDirection = default, float knockbackForce = 0f, int ParryType = 0 ,Color textColor = default)
     {
         this.hitPoint = hitPoint;
         this.hitNormal = hitNormal;
@@ -23,7 +24,7 @@ public struct ActionData
 
         this.knockbackDirection = knockbackDirection;
         this.knockbackForce = knockbackForce;
-        this.hurtType = hurtType;
+        this.ParryType = ParryType;
         this.textColor = textColor;
         
     }

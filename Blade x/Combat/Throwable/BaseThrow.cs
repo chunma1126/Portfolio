@@ -20,14 +20,14 @@ namespace Swift_Blade.Combat.Projectile
             Rigidbody.isKinematic = isActive;
         }
 
-        public virtual void SetDirection(Vector3 force)
+        public virtual void SetDirection(Vector3 dir)
         {
             transform.parent = null;
 
             SetPhysicsState(false);
-
+            
             Rigidbody.mass = 1;
-            Rigidbody.AddForce(force * forceAmount, ForceMode.Impulse);
+            Rigidbody.AddForce(dir * forceAmount, ForceMode.Impulse);
         }
         
         protected virtual void SetRigid(bool active, float mass)

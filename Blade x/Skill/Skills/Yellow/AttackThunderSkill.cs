@@ -15,12 +15,6 @@ namespace Swift_Blade.Skill
                 
         public override void Initialize()
         {
-            if (skillParticle == null || skillParticle.GetMono == null)
-            {
-                Debug.LogError("SkillEffectPrefab or its MonoBehaviour is null.");
-                return;
-            }
-            
             attackCounter = 0;
             MonoGenericPool<ThunderParticle>.Initialize(skillParticle);
         }
@@ -33,6 +27,8 @@ namespace Swift_Blade.Skill
             {
                 if (TryUseSkill())
                 {
+                    GenerateSkillText(true);
+                    
                     foreach (var item in targets)
                     {
                         if(item.TryGetComponent(out BaseEnemyHealth health))
@@ -40,8 +36,9 @@ namespace Swift_Blade.Skill
                             ActionData actionData = new ActionData();
                             actionData.stun = true;
                             actionData.damageAmount = skillDamage * GetColorRatio();
-                            actionData.hurtType = 1;
+                            actionData.ParryType = 1;
                             actionData.textColor = Color.yellow;
+                            actionData.hitPoint = item.position + new Vector3(0, 0.25f, 0);
                             //FloatingTextGenerator.Instance.GenerateText(generateText,item.transform.position + new Vector3(0,0.5f,0));
                             
                             health.TakeDamage(actionData);

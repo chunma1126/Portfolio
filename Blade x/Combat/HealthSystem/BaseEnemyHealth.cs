@@ -1,10 +1,10 @@
 using System.Collections;
 using Swift_Blade.Enemy;
+using Swift_Blade.Pool;
 using UnityEngine.AI;
 using Unity.Behavior;
 using UnityEngine;
 using System;
-using Swift_Blade.Pool;
 using Random = UnityEngine.Random;
 
 namespace Swift_Blade.Combat.Health
@@ -17,58 +17,56 @@ namespace Swift_Blade.Combat.Health
         [Space]
         [SerializeField] protected BehaviorGraphAgent BehaviorGraphAgent;
         [SerializeField] protected ChangeBossState changeBossState;
-                        
+        
         protected BaseEnemyAnimationController animationController;
-        private Rigidbody enemyRigidbody;
-        private NavMeshAgent navMeshAgent;
+
+        [Header("EXP")] 
+        [SerializeField] private int minExp;
+        [SerializeField] private int maxExp;
         
-        [Header("Knockback info")]
-        public bool isKnockback = false;
-        
-        private WaitForFixedUpdate waitForFixedUpdate = new WaitForFixedUpdate();
-        
-        protected const float DAMAGE_INTERVAL = 0.1f;
+        private const float DAMAGE_INTERVAL = 0.25f;
         protected float lastDamageTime;
         
         protected virtual void Start()
         {
-            currentHealth = maxHealth;
-            
-            navMeshAgent = GetComponent<NavMeshAgent>();
-            enemyRigidbody = GetComponent<Rigidbody>();
             BehaviorGraphAgent = GetComponent<BehaviorGraphAgent>();
             animationController = GetComponentInChildren<BaseEnemyAnimationController>();
             
-            OnHitEvent.AddListener(StartKnockback);
             OnHitEvent.AddListener(GeneratorText);
-            
-            BehaviorGraphAgent.GetVariable("ChangeBossState",out BlackboardVariable<ChangeBossState> state);
-            
-            Debug.Assert(state != null, "Enemy has Not State Change");
-            changeBossState = state;
-            
-        }
+            OnDeadEvent.AddListener(AddExp);
 
+            BehaviorGraphAgent.GetVariable("ChangeBossState", out BlackboardVariable<ChangeBossState> state);
+            {
+                Debug.Assert(state != null, "Enemy has Not State Change");
+                changeBossState = state;
+            }
+        }
+        
         private void OnDestroy()
         {
-            OnHitEvent.RemoveListener(StartKnockback);
             OnHitEvent.RemoveListener(GeneratorText);
+            OnDeadEvent.RemoveListener(AddExp);
+        }
+        
+        private void AddExp()
+        {
+            Player.level.AddExp(Random.Range(minExp , maxExp));
         }
         
         private void GeneratorText(ActionData actionData)
         {
             Vector3 textPosition = actionData.hitPoint;
-            
-            FloatingTextGenerator.Instance.GenerateText(actionData.damageAmount.ToString(),
+                        
+            FloatingTextGenerator.Instance.GenerateText
+            (
+                Mathf.CeilToInt(actionData.damageAmount).ToString(),
                 textPosition,
                 actionData.textColor == default ? Color.white : actionData.textColor);
-            
-           
         }
         
         public override void TakeDamage(ActionData actionData)
         {
-            if((isDead || !IsDamageTime()) && actionData.stun == false)return;
+            if((isDead || !IsDamageTime()))return;
             
             lastDamageTime = Time.time; 
             
@@ -76,10 +74,10 @@ namespace Swift_Blade.Combat.Health
             OnChangeHealthEvent?.Invoke(GetHealthPercent());
             
             if(actionData.stun)
-                ChangeParryState();
+                TriggerParry();
             
             OnHitEvent?.Invoke(actionData);
-                            
+            
             if (currentHealth <= 0)
             {
                 TriggerState(BossState.Dead);
@@ -87,23 +85,17 @@ namespace Swift_Blade.Combat.Health
             }
             
         }
-        
-        public override void Dead()
-        {
-            InventoryManager.Inventory.AddCoin(AddRandomCoin());
-            
-            base.Dead();
-        }
 
         protected bool IsDamageTime()
         {
             return Time.time > lastDamageTime + DAMAGE_INTERVAL;
         }
         
-        private int AddRandomCoin()
+        public void AddMaxHealth(float currentIndex)
         {
-            return Random.Range(1,10);
-        } 
+            maxHealth += currentIndex * 1.7f;
+            currentHealth = maxHealth;
+        }
         
         public override void TakeHeal(float amount)
         {
@@ -111,74 +103,30 @@ namespace Swift_Blade.Combat.Health
             currentHealth = Mathf.Min(currentHealth , maxHealth);
         }
                 
-        protected void TriggerState(BossState state)
+        public virtual void TriggerState(BossState state)
         {
             if(isDead)return;
+            animationController.StopAllAnimationEvents();
             
             BehaviorGraphAgent.SetVariableValue("BossState", state);
             changeBossState.SendEventMessage(state);
+        }
+        
+        public void TriggerHit()
+        {
+            TriggerState(BossState.Hit);
+        }
+        
+        public void TriggerParry()
+        {
+            TriggerState(BossState.Parry);
         }
         
         private float GetHealthPercent()
         {
             return currentHealth / maxHealth;
         }
+                                
         
-        public virtual void ChangeParryState()
-        {
-            animationController.StopAllAnimationEvents();
-            TriggerState(BossState.Hurt);
-        }
-        
-        private void StartKnockback(ActionData actionData)
-        {
-            if(actionData.knockbackDirection == default || actionData.knockbackForce == 0 || isKnockback)return;
-            
-            StartCoroutine(
-                Knockback(actionData.knockbackDirection , actionData.knockbackForce));
-        }
-        
-        private IEnumerator Knockback(Vector3 knockbackDirection, float knockbackForce)
-        {
-            isKnockback = true;
-            
-            navMeshAgent.enabled = false;
-            enemyRigidbody.useGravity = true;
-            enemyRigidbody.isKinematic = false;
-            enemyRigidbody.freezeRotation = true;
-    
-            enemyRigidbody.AddForce(knockbackDirection * knockbackForce, ForceMode.Impulse);
-            
-            yield return waitForFixedUpdate;
-    
-            float timeout = 0.5f; 
-            float timer = 0f;
-    
-            while (enemyRigidbody.linearVelocity.sqrMagnitude > 0.01f && timer < timeout) 
-            {
-                timer += Time.deltaTime;
-                yield return null;
-            }
-            
-            enemyRigidbody.linearVelocity = Vector3.zero;
-            enemyRigidbody.angularVelocity = Vector3.zero;
-            
-            yield return new WaitForFixedUpdate();
-    
-            transform.position = new Vector3(transform.position.x, navMeshAgent.nextPosition.y, transform.position.z);
-            navMeshAgent.Warp(transform.position);
-            
-            enemyRigidbody.freezeRotation = false;
-            navMeshAgent.enabled = true;
-            enemyRigidbody.useGravity = false;
-            enemyRigidbody.isKinematic = true;
-    
-            if (navMeshAgent.hasPath)
-            {
-                navMeshAgent.ResetPath();
-            }
-
-            isKnockback = false;
-        }
     }
 }

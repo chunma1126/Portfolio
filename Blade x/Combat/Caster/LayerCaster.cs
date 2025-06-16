@@ -6,7 +6,7 @@ namespace Swift_Blade.Combat.Caster
 {
     public abstract class LayerCaster : MonoBehaviour, ICasterAble
     {
-        [SerializeField] [Range(0.5f, 10f)] protected float _casterRadius = 1f;
+        [SerializeField] [Range(0f, 10f)] protected float _casterRadius = 1f;
         [SerializeField] [Range(0f, 10f)] protected float _casterInterpolation = 0.5f;
         [SerializeField] [Range(0f, 10f)] protected float _castingRange = 1f;
         
@@ -18,6 +18,8 @@ namespace Swift_Blade.Combat.Caster
        
         protected virtual void ApplyDamage(IHealth health,ActionData actionData)
         {
+            if (health.IsDead) return;
+            
             OnCastDamageEvent?.Invoke(actionData);
             health.TakeDamage(actionData);
         }

@@ -15,15 +15,13 @@ public partial class WaitForAnimationEndAction : Action
     {
         if (animationController.Value.animationEnd)
         {
+            animationController.Value.StopAnimationEnd();
             return Status.Success;
         }
         
         return Status.Running;
+               
     }
 
-    protected override void OnEnd()
-    {
-        animationController.Value.StopAnimationEnd();
-    }
 }
 

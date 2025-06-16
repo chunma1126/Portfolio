@@ -7,12 +7,14 @@ namespace Swift_Blade.Enemy
     {
         private float rotateDuration = 0.7f;
         private float rotateSpeed = 240;
-    
-        private void Awake()
+
+        protected Rigidbody rigid;
+        protected BoxCollider boxCollider;
+        protected virtual void Awake()
         {
             transform.parent = null;
-            gameObject.AddComponent<BoxCollider>();
-            gameObject.AddComponent<Rigidbody>();
+            boxCollider = gameObject.AddComponent<BoxCollider>();
+            rigid = gameObject.AddComponent<Rigidbody>();
         }
         
         private void Start()

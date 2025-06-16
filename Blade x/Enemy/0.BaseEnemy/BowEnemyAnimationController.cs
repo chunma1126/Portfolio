@@ -7,16 +7,15 @@ namespace Swift_Blade.Enemy.Bow
     {
         [SerializeField] private Bowstring bowstring;
                 
-        protected override void Start()
+        protected void Start()
         {
-            base.Start();
             StopDrawBowstring();
         }
 
         public override void StopAllAnimationEvents()
         {
-            base.StopAllAnimationEvents();
             StopDrawBowstring();
+            base.StopAllAnimationEvents();
         }
         
         public void StartDrawBowstring()
@@ -29,12 +28,5 @@ namespace Swift_Blade.Enemy.Bow
             bowstring.canDraw = false;
         }
 
-        private void OnAudioPlay(AudioSO audio)
-        {
-            AudioManager.PlayWithInit(audio, true);
-        }
-        
-        private void OnAudioPlayCollection(AudioCollectionSO audioCollectionSo) => OnAudioPlay(audioCollectionSo.GetRandomAudio);
-        
     }
 }

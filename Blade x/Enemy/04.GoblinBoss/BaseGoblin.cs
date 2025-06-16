@@ -19,7 +19,7 @@ namespace Swift_Blade.Enemy.Goblin
         {
             base.Update();
             
-            if (goblinAnimator.isManualKnockback && !DetectBackwardObstacle() && !baseHealth.isKnockback)
+            if (goblinAnimator.isManualKnockback && !DetectBackwardObstacle() && isKnockback)
             {
                 attackDestination = transform.position + player.forward;
                 

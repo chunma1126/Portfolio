@@ -6,7 +6,7 @@ namespace Swift_Blade.Enemy.Boss.Goblin
     {
         public void CreateSummon()
         {
-            (enemy as GoblinBoss)?.Summon();
+            (enemy as GoblinBoss)?.TrySummon();
         }
     }
 }

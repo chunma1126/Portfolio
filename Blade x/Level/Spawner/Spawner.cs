@@ -34,12 +34,14 @@ namespace Swift_Blade.Level
         public float dustParticleDelay;
         public Transform[] doorTrm;
 
-        private WaitForSeconds doorSpawnDelay;
+        protected WaitForSeconds doorSpawnDelay;
         private bool isSpawnSmall;
         
         [Header("Wave Count")]
         public int waveCount;
-            
+
+        protected bool isClear = false;
+        protected bool hasSceneManagerEvent = false;
         protected virtual void Start()
         {
             InitializeParticle();
@@ -50,7 +52,7 @@ namespace Swift_Blade.Level
             StartCoroutine(Spawn());
         }
 
-        private void InitializeParticle()
+        protected void InitializeParticle()
         {
             if (enemySpawnParticle.GetMono as EnemySpawnParticle)
             {
@@ -63,11 +65,9 @@ namespace Swift_Blade.Level
                 isSpawnSmall = true;
             }
         }
-
+        
         protected void PlaySpawnParticle(Vector3 position)
         {
-            Debug.Log(isSpawnSmall);
-            
             if (isSpawnSmall)
             {
                 SmallSpawnParticle spawnParticle = MonoGenericPool<SmallSpawnParticle>.Pop();
@@ -83,26 +83,59 @@ namespace Swift_Blade.Level
         
         protected IEnumerator LevelClear()
         {
+            if (hasSceneManagerEvent)
+            {
+                Debug.LogError("ERROR: Already Level Clear Event");
+                yield break;
+            }
+            
+            hasSceneManagerEvent = true;
             sceneManager.LevelClear();
             
             Node[] newNode = sceneManager.GetNodeList().GetNodes();
-            
             yield return doorSpawnDelay;
-            
+                        
             for (int i = 0; i < newNode.Length; ++i)
             {
                 var doorPosition = doorTrm[i].position;
-                                
+                
                 DustUpParticle dustUpParticle = MonoGenericPool<DustUpParticle>.Pop();
                 dustUpParticle.transform.position = doorPosition;
-                                
-                Door newDoor = Instantiate(newNode[i].GetPortalPrefab(), doorPosition, Quaternion.identity);
-                newDoor.SetScene(newNode[i].nodeName);
-                newDoor.UpDoor();
+                
+                CreateDoor(newNode[i], doorPosition);
             }
+        }
+
+        protected virtual void CreateDoor(Node node, Vector3 doorPosition)
+        {
+            Door newDoor = Instantiate(node.GetPortalPrefab(), doorPosition, Quaternion.identity);
+            newDoor.SetScene(node.nodeName);
+            newDoor.UpDoor();
         }
         
         protected abstract IEnumerator Spawn();
+
+        protected float CalculateHealthAdditional()
+        {
+            int stage = (int)sceneManager.GetNodeList().GetCurrentStageType(); 
+            int nodeIndex = sceneManager.GetNodeList().GetCurrentNodeIndex(); 
+            
+            float baseMin = 1f;
+            float baseMax = 2f;
+    
+            float stageIncrementMin = 3f + stage * 2f; 
+            float stageIncrementMax = 5f + stage * 3f; 
+    
+            float perRoomIncrease = baseMin + ((baseMax - baseMin) / 5f) * nodeIndex; 
+    
+            float randomStageIncrement = UnityEngine.Random.Range(stageIncrementMin, stageIncrementMax);
+            
+            float healthAdditional = perRoomIncrease + randomStageIncrement;
+            
+            //Debug.Log(healthAdditional);
+            
+            return healthAdditional;
+        }
         
     }
 }

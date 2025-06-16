@@ -26,7 +26,34 @@ namespace Swift_Blade.Enemy.Boss.Goblin
             player = target.GetComponentInParent<Player>().GetPlayerTransform;
         }
 
-        public void Summon()
+
+        public override void DeadEvent()
+        {
+            ClearSummons();
+            
+            base.DeadEvent();
+        }
+
+        private void ClearSummons()
+        {
+            if (summons.Count > 0)
+            {
+                foreach (var item in summons)
+                {
+                    ActionData actionData = new ActionData
+                    {
+                        damageAmount = 999,
+                        stun = true,
+                        ParryType = 1
+                    };
+                
+                    item.GetHealth().TakeDamage(actionData);
+                }
+                summons.Clear();
+            }
+        }
+
+        public void TrySummon()
         {
             var rand = Random.Range(minSummonCount, maxSummonCount);
 
@@ -56,6 +83,6 @@ namespace Swift_Blade.Enemy.Boss.Goblin
             if (summons.Count == 0)
                 summons.Clear();
         }
-                
+        
     }
 }

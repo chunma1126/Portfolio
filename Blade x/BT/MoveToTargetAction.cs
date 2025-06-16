@@ -38,6 +38,8 @@ public class MoveToTargetAction : Action
     
     protected override Status OnUpdate()
     {
+        if (Agent.Value == null || Agent.Value.enabled == false) return Status.Running;
+        
         Boss.Value.FactToTarget(Boss.Value.GetNextPathPoint());
         Agent.Value.SetDestination(targetPos);
         

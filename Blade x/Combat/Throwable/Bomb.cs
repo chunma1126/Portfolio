@@ -1,3 +1,4 @@
+using Swift_Blade.Audio;
 using Swift_Blade.Combat.Health;
 using Swift_Blade.Feeling;
 using Swift_Blade.Pool;
@@ -7,45 +8,41 @@ namespace Swift_Blade.Combat.Projectile
 {
     public class Bomb : BaseThrow
     {
-        public LayerMask whatIsTarget;
-        public CameraShakeType shakeType;
-        public PoolPrefabMonoBehaviourSO explosionSO;
+        [SerializeField] private LayerMask whatIsTarget;
+                
+        [SerializeField] private CameraShakeType shakeType;
+        [SerializeField] private PoolPrefabMonoBehaviourSO explosionSO;
 
-        public float explosionRadius;
-        public int defaultDamage = 1;
-        public int enemyDamage = 5;
+        [SerializeField] private float explosionRadius;
+        [SerializeField] private int enemyDamage = 5;
         
         private bool canExplosion;
         private bool hasExploded; // 무한루프 방지용 플래그
         private readonly Collider[] targets = new Collider[10];
         
-        private LayerMask whatIsEnemy;
+        
+        [Space]
+        [SerializeField] private AudioCollectionSO explosionSound;
         
         protected override void Start()
         {
             base.Start();
-            whatIsEnemy = LayerMask.NameToLayer("Enemy");
-                        
             MonoGenericPool<ExplosionParticle>.Initialize(explosionSO);
         }
 
         private void OnCollisionEnter(Collision other)
         {
-            if (CheckEnemyLayer(other) && canExplosion)
+            if (canExplosion)
             {
                 Explosion(other.GetContact(0).point);
             }
-        }
-
-        
-        private bool CheckEnemyLayer(Collision other)
-        {
-            return other.gameObject.layer != whatIsEnemy;
         }
         private void Explosion(Vector3 explosionPoint)
         {
             if (canExplosion == false || hasExploded) 
                 return;
+            
+            AudioManager.PlayWithInit(explosionSound.GetRandomAudio, true);
             
             canExplosion = false;
             hasExploded = true;
@@ -54,26 +51,37 @@ namespace Swift_Blade.Combat.Projectile
             
             for (int i = 0; i < counts; i++)
             {
-                var target = targets[i].GetComponentInChildren<IHealth>();
-                if (target != null)
+                var targetObject = targets[i];
+                var position = targetObject.transform.position + new Vector3(0, 0.25f, 0);
+
+                // 1. IHealth 처리
+                if (targetObject.TryGetComponent<IHealth>(out IHealth health))
                 {
-                    var defaultAction = new ActionData
+                    var isEnemy = health is BaseEnemyHealth;
+                    var actionData = new ActionData
                     {
-                        damageAmount = defaultDamage,
-                        stun = true
+                        damageAmount = isEnemy ? enemyDamage : 1,
+                        hitPoint = position,
+                        textColor = Color.yellow,
+                        stun = true,
+                        ParryType = 1
                     };
                     
-                    var action = (target is BaseEnemyHealth)
-                        ? new ActionData(Vector3.zero, Vector3.zero, enemyDamage, true)
-                        : defaultAction;
-
-                    target.TakeDamage(action);
+                    health.TakeDamage(actionData);
+                    continue;
                 }
-                else if (targets[i].TryGetComponent(out Bomb otherBomb))
+
+                if (targetObject.TryGetComponent(out Bomb bomb))
                 {
-                    otherBomb.SetPhysicsState(false);
-                    otherBomb.SetDirection(Vector3.zero);
-                    otherBomb.Explosion(otherBomb.transform.position);
+                    bomb.SetPhysicsState(false);
+                    bomb.SetDirection(Vector3.zero);
+                    bomb.Explosion(bomb.transform.position);
+                    continue;
+                }
+                
+                if (targetObject.TryGetComponent(out DestructibleObject destructible))
+                {
+                    destructible.TakeDamage(new ActionData());
                 }
             }
 
