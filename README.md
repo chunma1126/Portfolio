@@ -9,9 +9,9 @@
 
 ## Blade X
 <p align="left">
-  <img src="image/bladex_1.png" alt="BladeX 이미지" width="250"/>
-  <img src="image/bladex_2.png" alt="BladeX 이미지" width="250"/>
-  <img src="image/bladex_3.png" alt="BladeX 이미지" width="250"/>
+  <img src="Image/bladex_1.png" alt="BladeX 이미지" width="250"/>
+  <img src="Image/bladex_2.png" alt="BladeX 이미지" width="250"/>
+  <img src="Image/bladex_3.png" alt="BladeX 이미지" width="250"/>
 </p>
 
 **도구:** 유니티 / C#  
@@ -31,9 +31,9 @@
 
 ## Avoid
 <p align="left">
-  <img src="image/Avoid_1.png" alt="Avoid1" width="230"/>
-  <img src="image/Avoid_2.png" alt="Avoid2" width="230"/>
-  <img src="image/Avoid_3.png" alt="Avoid3" width="230"/>
+  <img src="Image/Avoid_1.png" alt="Avoid1" width="230"/>
+  <img src="Image/Avoid_2.png" alt="Avoid2" width="230"/>
+  <img src="Image/Avoid_3.png" alt="Avoid3" width="230"/>
 </p>
 
 **도구:** cocos2d-x / c++  
@@ -47,7 +47,7 @@
 -  C++에서 함수 Functional 및 템플릿을 이용해 Delegate 시스템을 직접 설계하고 구현했습니다.
 - MVC 패턴을 적용해 UI를 모듈화하고 확장성을 높였습니다.
 - ArrowPattern을 추상 클래스로 구성하고, Pattern Queue를 만들어 다양한 패턴을 유연하게 조합할 수 있도록 구현했습니다.  
-- Android Studio를 이용하여 빌드를 진행해 APK파일을 뽑아봤습니다.
+- Android Studio를 이용하여 빌드를 진행했습니다.
 
 
 
