@@ -1,18 +1,17 @@
-# 📌 {프로젝트 이름}
+# Blade X
 
 <aside>
 
-> 📌 {한 줄 소개}
+> 📌 하데스와 데스도어에서 영감을 받은, 매 도전마다 새롭게 성장하여 강력한 보스에 맞서는 로그라이크 게임입니다.
 
 </aside>
-"C:\Users\user\Portfolio\Blade x\
 <p align="left">
   <img src="Image\bladex_1.png" alt="{스크린샷1 설명}" width="250"/>
   <img src="Image\bladex_2.png" alt="{스크린샷2 설명}" width="250"/>
     <img src="Image\bladex_3.png" alt="{스크린샷2 설명}" width="250"/>
 </p>
 
-🔗 [유튜브]({유튜브 링크})  
+🔗 [유튜브](https://www.youtube.com/watch?v=NYQJKlHX2So)  
 🔗 [문서](https://abaft-yarn-52e.notion.site/blade-x-1d5c32f25528803b96c3fd71d4189735)  
 
 | 항목 | 내용 |
