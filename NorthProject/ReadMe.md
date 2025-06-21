@@ -6,7 +6,7 @@
 
 </aside>
 
-<p align="center">
+<p align="left">
   <img src="Image/스크린샷_1.png" alt="NorthProject 이미지1" width="250"/>
   <img src="Image/스크린샷_2.png" alt="NorthProject 이미지2" width="250"/>
   <img src="Image/스크린샷_3.png" alt="NorthProject 이미지3" width="250"/>
