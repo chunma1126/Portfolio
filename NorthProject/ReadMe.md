@@ -43,14 +43,21 @@
 - 전체 프로젝트 일정 관리 및 팀 기획 총괄.
 
 ---
+## 🔹 주요 시스템 구성
 
-### 🔹 주요 시스템 구성
+### 탄막 관리 시스템
+- `BulletManager.cs`를 통해 `BasicShot`, `CircleShot`, `CircleShotGoToTarget`, `ShapeShot`, `SpinShot`, `HeartShot`, `HeartShotGoToTarget`, `RoseShot`, `RoseSpinShot` 등 **총 9가지 탄막 패턴을 구현**하고, 이 패턴들을 자유롭게 조합할 수 있도록 유연하게 설계했습니다.
 
-#### ✅ 탄막 관리 시스템 (BulletManager)
-- 탄막 오브젝트를 체계적으로 생성/관리할 수 있도록 설계하여 패턴 구현 편의성 향상
+- `Projectile.cpp`에서는 각 탄환이 **자체 조건에 따라 스스로 파괴되도록** 설계하여, 관리 비용을 줄이고 독립적인 동작이 가능하게 만들었습니다.  
+- `Projectile`을 상속받아 `EnemyProjectile`, `FollowProjectile` 등 다양한 특성의 탄환을 구현했습니다.
 
-#### ✅ UI 관리 시스템 (UIManager)
-- UI 요소들을 중앙 집중식으로 제어하며, Scene 간 전환 및 상태 동기화에 유리한 구조로 개발
+### UI
+- `UI.cpp`를 통해 UI 요소들을 **상속 구조**로 개발하여 재사용성과 확장성을 높였습니다.  
+- `UIManager.cpp`를 싱글톤 패턴으로 설계해 전체 UI 흐름을 통합적으로 관리했습니다.  
+- `Button.cpp`에서는 버튼의 상태(Enter, Hover, Click, Exit)에 따라 **다양한 이벤트를 처리할 수 있도록 구조화**했습니다.
 
-#### ✅ UI 상속 구조
-- 공통 UI 클래스를 기반으로 버튼, 인디케이터, 텍스트 등 다양한 요소를 객체지향적으로 구성
+### 씬 관리
+- `TitleScene`, `GameScene`, `BossScene` 등을 초기화하고, **ReStart 시 각 씬 내 오브젝트를 정리하도록 구현**해 재시작 시 깔끔한 상태로 돌아갈 수 있도록 만들었습니다.
+
+### 무한 스크롤링
+- `Background.cpp`를 이용해 **배경이 끊김 없이 반복되는 무한 스크롤링 효과**를 구현했습니다.
